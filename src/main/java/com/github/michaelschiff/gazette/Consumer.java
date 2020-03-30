@@ -3,6 +3,7 @@ package com.github.michaelschiff.gazette;
 import dev.gazette.core.broker.protocol.JournalGrpc;
 import dev.gazette.core.broker.protocol.Protocol;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -154,10 +155,13 @@ public class Consumer {
                     break;
                 } else if (Protocol.Status.OK.equals(metadata.getStatus())) {
                     Protocol.ReadResponse content = responseIter.next();
-                    offset = metadata.getFragment().getEnd();
+                    //TODO(michaelschiff): check offset tracking correctness
+                    offset = metadata.getOffset();
                     String[] recs = content.getContent().toStringUtf8().split("\n");
                     for (String rec : recs) {
-                        polledRecords.add(new Record(journal, offset, rec));
+                        byte[] bytes = rec.getBytes(StandardCharsets.UTF_8);
+                        polledRecords.add(new Record(journal, offset, bytes));
+                        offset += bytes.length + 1; //+1 for the \n that we split on
                     }
                 }
             }
@@ -169,9 +173,9 @@ public class Consumer {
     public static class Record {
         String journal;
         long offset;
-        String data;
+        byte[] data;
 
-        public Record(String journal, long offset, String data) {
+        public Record(String journal, long offset, byte[] data) {
             this.journal = journal;
             this.offset = offset;
             this.data = data;
@@ -185,7 +189,7 @@ public class Consumer {
             return offset;
         }
 
-        public String getData() {
+        public byte[] getData() {
             return data;
         }
     }
