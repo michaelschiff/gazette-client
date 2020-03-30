@@ -51,9 +51,12 @@ public class Consumer {
      *                 knowledge or a call to {@link Consumer#listJournalsForPrefix}
      */
     public void assign(Set<String> journals) {
+        Map<String, Long> newAssignment = new HashMap<>();
         for (String journal : journals) {
-            pollFrom.put(journal, -1L);
+            newAssignment.put(journal, pollFrom.getOrDefault(journal, -1L));
         }
+        pollFrom.clear();
+        pollFrom.putAll(newAssignment);
     }
 
     /**
