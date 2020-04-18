@@ -81,7 +81,7 @@ public class TestJournalService extends JournalGrpc.JournalImplBase {
         ByteString fragment = journalFragments.get(fragmentBaseOffset);
 
         // The last fragment might not reach the requested offset
-        if (offset > fragmentBaseOffset + fragment.size()) {
+        if (offset >= fragmentBaseOffset + fragment.size()) {
             responseObserver.onNext(Protocol.ReadResponse.newBuilder()
                     .setStatus(Protocol.Status.OFFSET_NOT_YET_AVAILABLE)
                     .setOffset(fragmentBaseOffset + fragment.size())
